@@ -1,0 +1,26 @@
+{
+  "name": "elemental-http-server",
+  "version": "0.0.1",
+  "description": "### Basic HTTP Server that reads from and writes to fs",
+  "main": "server.js",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "http": "^0.0.0",
+    "querystring": "^0.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danieltichiyama/Elemental-HTTP-Server.git"
+  },
+  "author": "Daniel Ichiyama",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/danieltichiyama/Elemental-HTTP-Server/issues"
+  },
+  "homepage": "https://github.com/danieltichiyama/Elemental-HTTP-Server#readme"
+}

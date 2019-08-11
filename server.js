@@ -276,5 +276,3 @@ function putHandler(req, res, body) {
     }
   });
 }
-
-f;

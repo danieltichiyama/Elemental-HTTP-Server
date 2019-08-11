@@ -5,7 +5,8 @@
 ## Security Notice !!!
 
 This server will expose some serious security vulnerabilities.  
-Do not run this in production, or leave it running on your local environment that is accessible from the public network.  
+Do not run this in production, or leave it running on your local environment that is accessible from the public network.
+
 ## Resources
 
 - [NodeJS http module](https://nodejs.org/api/http.html)
@@ -43,7 +44,7 @@ The HTTP Server will parse the form data, and save a file in the designated publ
 The form data will be:
 
 | Name                | Content                                                             |
-|---------------------|---------------------------------------------------------------------|
+| ------------------- | ------------------------------------------------------------------- |
 | elementName         | the Titlecased name of the element to be saved, for example "Boron" |
 | elementSymbol       | the element Symbol, for example: "B"                                |
 | elementAtomicNumber | the element's atomic number, for example: 5                         |
@@ -79,7 +80,7 @@ When `carbon.html` is been added to the `public/` directory, add a link to `carb
 ## Initial Routing Table
 
 | HTTP | Path            | File                  |
-|------|-----------------|-----------------------|
+| ---- | --------------- | --------------------- |
 | GET  | /               | public/index.html     |
 | GET  | /hydrogen.html  | public/hydrogen.html  |
 | GET  | /helium.html    | public/helium.html    |
@@ -101,12 +102,12 @@ The PUT request contains a body similar to the POST request fields.
 
 _for your convenience, require all 4 fields be set to update the html file_
 
-| Name                | Content                                                             |
-|---------------------|---------------------------------------------------------------------|
-| elementName         | update the name of the element in the html document to this value |
-| elementSymbol       | update the element Symbol in the html document to this value |
+| Name                | Content                                                               |
+| ------------------- | --------------------------------------------------------------------- |
+| elementName         | update the name of the element in the html document to this value     |
+| elementSymbol       | update the element Symbol in the html document to this value          |
 | elementAtomicNumber | update the element's atomic number in the html document to this value |
-| elementDescription  | update the short description                                                 in the html document to this value |
+| elementDescription  | update the short description in the html document to this value       |
 
 If the requested path to update does not exist, return a 500 server error, content type `application/json`, and content body of `{ "error" : "resource /carbon.html does not exist" }` (for example)
 
@@ -138,13 +139,13 @@ Use HTTP Basic Auth to protect the sensitive aspects of your server, POST, PUT, 
 
 Check if the `authorization` header is present in the request, if it is not, require authorization (using Basic Auth) by sending a status code of 401, sending a response with a header of `WWW-Authenticate` with a value of `Basic realm="Secure Area"` and ending the request by responding with a body of `<html><body>Not Authorized</body></html>`
 
-
 ![basic auth](screenshots/basic_auth.png)
 
 If the `authorization` header is present, decode and compare against your own internal valid login credentials.  
 To decode the `authorization` header, extract the value of the `authorization` header by removing the first part of the authorization header value.
 
-Example authorization header value:  
+Example authorization header value:
+
 ```
 Basic Y2hhcmxlczoxMjM0NQ==
       ^------------------^--> only need this string
@@ -158,7 +159,8 @@ var base64Buffer = new Buffer(encodedString, 'base64');
 var decodedString = base64Buffer.toString();
 ```
 
-**decodedString** will be the username password pair separated by a colon `:`  
+**decodedString** will be the username password pair separated by a colon `:`
+
 ```
 console.log(decodedString);
 // username:password
@@ -167,7 +169,7 @@ console.log(decodedString);
 extract the username and password from the decodedString, then compare against some stored username and password stored somewhere in memory.
 
 **Security Consideration Notice**  
-_You will be committing your code to a public github repository, where anyone can see your source code which will contain your secret username and password... so use caution and set it to some fake test credentials__
+\_You will be committing your code to a public github repository, where anyone can see your source code which will contain your secret username and password... so use caution and set it to some fake test credentials\_\_
 
 If the username and password match your secret values, allow the client to perform their requested operation.
 

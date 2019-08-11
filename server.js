@@ -22,6 +22,10 @@ const server = http.createServer((req, res) => {
     if (req.method === "POST") {
       postHandler(res, body);
     }
+
+    if (req.method === "PUT") {
+      putHandler(req, res, body);
+    }
   });
 });
 
@@ -41,6 +45,9 @@ function getHandler(req, res) {
         let date = new Date();
         if (err) {
           fs.readFile("./public/404.html", (err, data) => {
+            if (err) {
+              throwError(res, 404, "Error: Requested 404 page not found", err);
+            }
             throwError(res, 404, "Error: Requested file not found", data);
           });
         } else {
@@ -77,8 +84,7 @@ function postHandler(res, body) {
       <h1>${capitalizer(parsed.elementName)}</h1>
       <h2>${parsed.elementSymbol}</h2>
       <h3>Atomic number ${parsed.elementAtomicNumber}</h3>
-      <p>
-        ${parsed.elementDescription}
+      <p>${parsed.elementDescription}
       </p>
       <p><a href="/">back</a></p>
     </body>
@@ -106,30 +112,19 @@ function postHandler(res, body) {
           });
           res.write(contentBody);
 
-          fs.readFile("./public/index.html", (err, data) => {
+          generateIndexBody(function(err, data) {
             if (err) {
-              throwError(res, 400, "Error: /index.html not found", err);
-            } else {
-              let endOfOL = data.toString().split("</ol>");
-
-              endOfOL[0] = endOfOL[0].concat(`<li>
-              <a href="/${parsed.elementName.toLowerCase()}.html">${capitalizer(
-                parsed.elementName
-              )}</a>
-            </li>`);
-
-              let newBody = endOfOL.join("</ol>");
-
-              fs.writeFile("./public/index.html", newBody, err => {
-                if (err) {
-                  throwError(
-                    500,
-                    "Server Error: Could not change index.html file",
-                    err
-                  );
-                }
-              });
+              throwError(500, "Server Error: Cannot find directory", err);
             }
+            fs.writeFile("./public/index.html", data, err => {
+              if (err) {
+                throwError(
+                  500,
+                  "Server Error: Could not change index.html file",
+                  err
+                );
+              }
+            });
           });
 
           res.end();
@@ -164,3 +159,122 @@ let capitalizer = function(string) {
   string = firstLetter.concat(string);
   return string;
 };
+
+let generateIndexBody = function(cb) {
+  fs.readdir("./public", (err, files) => {
+    if (err) {
+      return cb(err);
+    }
+    let filteredList = files.filter(function(element) {
+      return ![".keep", "404.html", "index.html", "css"].includes(element);
+    });
+    let top = `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <title>The Elements</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    </head>
+    <body>
+    <h1>The Elements</h1>
+    <h2>These are all the known elements.</h2>
+    <h3>These are ${filteredList.length}</h3>
+    <ol>`;
+
+    let bottom = `
+    </ol>
+    </body>
+    </html>`;
+
+    for (let i = 0; i < filteredList.length; i++) {
+      let name = filteredList[i].split(".");
+      let listElements = `<li>
+      <a href= "/${filteredList[i]}">${capitalizer(name[0])}</a>
+      </li>`;
+      top += listElements;
+    }
+    top += bottom;
+
+    return cb(null, top);
+  });
+};
+
+function putHandler(req, res, body) {
+  let arrOfProperties = [
+    "elementName",
+    "elementSymbol",
+    "elementAtomicNumber",
+    "elementDescription"
+  ];
+  let parsed = querystring.parse(body);
+
+  let parsedCopy = Object.assign({}, parsed);
+
+  for (let i = 0; i < arrOfProperties.length; i++) {
+    if (!parsedCopy.hasOwnProperty(arrOfProperties[i])) {
+      return throwError(
+        res,
+        400,
+        `Error: Form content missing, please include: ${arrOfProperties[i]}`
+      );
+    }
+  }
+
+  let path = `./public/${parsed.elementName.toLowerCase()}.html`;
+  let postedData = `<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <title>The Elements - ${capitalizer(parsed.elementName)}</title>
+      <link rel="stylesheet" href="/css/styles.css" />
+    </head>
+    <body>
+      <h1>${capitalizer(parsed.elementName)}</h1>
+      <h2>${parsed.elementSymbol}</h2>
+      <h3>Atomic number ${parsed.elementAtomicNumber}</h3>
+      <p>${parsed.elementDescription}
+      </p>
+      <p><a href="/">back</a></p>
+    </body>
+  </html>`;
+
+  fs.access(path, fs.F_OK, err => {
+    if (err) {
+      let body = `{"error":"resource ${parsed.elementName.toLowerCase()} does not exist}`;
+
+      res.writeHead(500, "Server Error: File does not exist.", {
+        "Content-type": "application/json",
+        "Content-length": body.length
+      });
+
+      res.write(body);
+      res.end();
+    } else {
+      fs.appendFile(path, postedData, err => {
+        if (err) {
+          return throwError(
+            res,
+            500,
+            "Server Error: Server could not overwrite file",
+            err
+          );
+        } else {
+          let date = new Date();
+          let contentBody = `{"success":true}`;
+
+          res.writeHead(200, "OK", {
+            "Content-type": "application/json",
+            Date: date.toUTCString(),
+            "Content-length": contentBody.length,
+            Server: serverName
+          });
+          res.write(contentBody);
+
+          res.end();
+        }
+      }); //fs.access end
+    }
+  });
+}
+
+f;

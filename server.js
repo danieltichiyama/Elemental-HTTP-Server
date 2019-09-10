@@ -26,6 +26,10 @@ const server = http.createServer((req, res) => {
     if (req.method === "PUT") {
       putHandler(req, res, body);
     }
+
+    if (req.method === "DELETE") {
+      deleteHandler(req, res);
+    }
   });
 });
 
@@ -104,14 +108,6 @@ function postHandler(res, body) {
           let date = new Date();
           let contentBody = `{"success":true}`;
 
-          res.writeHead(200, "OK", {
-            "Content-type": "application/json",
-            Date: date.toUTCString(),
-            "Content-length": contentBody.length,
-            Server: serverName
-          });
-          res.write(contentBody);
-
           generateIndexBody(function(err, data) {
             if (err) {
               throwError(500, "Server Error: Cannot find directory", err);
@@ -124,10 +120,16 @@ function postHandler(res, body) {
                   err
                 );
               }
+              res.writeHead(200, "OK", {
+                "Content-type": "application/json",
+                Date: date.toUTCString(),
+                "Content-length": contentBody.length,
+                Server: serverName
+              });
+              res.write(contentBody);
+              res.end();
             });
           });
-
-          res.end();
         }
       });
     } else {
@@ -274,5 +276,42 @@ function putHandler(req, res, body) {
         }
       }); //fs.access end
     }
+  });
+}
+
+function deleteHandler(req, res) {
+  let path = `./public${req.url}`;
+
+  fs.unlink(path, err => {
+    if (err) {
+      throwError(res, 500, "Server error: specified path does not exist", err);
+    }
+
+    let date = new Date();
+    let msg = `{"success":true}`;
+
+    generateIndexBody(function(err, data) {
+      if (err) {
+        throwError(500, "Server Error: Cannot find directory", err);
+      }
+      fs.writeFile("./public/index.html", data, err => {
+        if (err) {
+          throwError(
+            500,
+            "Server Error: Could not change index.html file",
+            err
+          );
+        }
+        res.writeHead(200, "OK", {
+          "Content-type": "application/json",
+          "Content-length": msg.length,
+          Date: date.toUTCString(),
+          Server: serverName
+        });
+
+        res.write(msg);
+        res.end();
+      });
+    });
   });
 }
